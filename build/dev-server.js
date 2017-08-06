@@ -10,6 +10,7 @@ var webpack = require('webpack')
 var webpackConfig = require('./webpack.dev.config')
 var webpackDevMiddleware = require("webpack-dev-middleware");
 var proxyMiddleware = require('http-proxy-middleware')
+var glob = require('glob');
 
 var port = process.env.PORT || config.dev.port
 var autoOpenBrowser = !!config.dev.autoOpenBrowser
@@ -20,7 +21,26 @@ var compression = require('compression')
 app.use(compression());
 var compiler = webpack(webpackConfig);
 // 让vue 的html5模式显得更真实
-app.use(require('connect-history-api-fallback')())
+function rewrites(globPath) {
+  var rewrite = [], tmp, pathname;
+  glob.sync(globPath).forEach(function (entry) {
+    tmp = entry.split('/').splice(-4);
+    var pathsrc = tmp[0]+'/'+tmp[1];
+    if( tmp[0] === 'src' ){
+      pathsrc = tmp[1];
+      basename = tmp[2]
+    }
+    pathname = '/' + pathsrc + '/' + basename + path.extname(entry);
+    rewrite.push({
+      from: new RegExp('\/'+ tmp[2] +'$'),
+      to: pathname
+    })
+  })
+  return rewrite
+}
+app.use(require('connect-history-api-fallback')({
+  rewrites: rewrites('./src/pages/*/*.html')
+}))
 var devMiddleware = webpackDevMiddleware(compiler, {
   publicPath: webpackConfig.output.publicPath,
   quiet: true //显示控制台
@@ -57,7 +77,7 @@ var readyPromise = new Promise(resolve => {
 // 包有效或重新有效时执行
 devMiddleware.waitUntilValid(() => {
   // when env is testing, don't need open it
-  if (autoOpenBrowser && process.env.NODE_ENV !== 'testing') {
+  if (autoOpenBrowser && process.env.NODE_ENV === 'testing') {
     opn(uri)
   }
    _resolve()

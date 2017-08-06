@@ -5,6 +5,7 @@ var path = require('path')
 var utils = require('./utils')
 var webpack = require('webpack')
 var config = require('../config')
+var entries = utils.getMultiEntry('./src/pages/*/*.js')
 function resolve (dir) {
   return path.join(__dirname, '..', dir)
 }
@@ -28,9 +29,10 @@ if (process.env.NODE_ENV !== 'dev') {
   pngUse.push('image-webpack-loader'); // 压缩图片
 }
 module.exports = {
-  entry: {
-    app: ['babel-polyfill', './src/main.js']
-  },
+  // entry: {
+  //   app: ['babel-polyfill', './src/main.js']
+  // },
+  entry: entries,
   output: {
     path: config.build.assetsRoot,
     filename: '[name].js'

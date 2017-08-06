@@ -24,14 +24,18 @@ module.exports = merge(webpackConfig, {
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
-
-    new HtmlWebpackPlugin({
-        title: '哈哈哈哈哈',
-        filename: 'index.html',
-        template: 'index.html',
-        inject: true
-      }
-    ),
     new FriendlyErrorsPlugin()
   ]
 })
+var pages =  utils.getMultiEntry('./src/pages/*/*.html');
+for (var pathname in pages) {
+  // 配置生成的html文件，定义路径等
+  var conf = {
+    filename: pathname + '.html',
+    template: pages[pathname], // 模板路径
+    chunks: [pathname, 'vendors', 'manifest'], // 每个html引用的js模块
+    inject: true              // js插入位置
+  };
+  // 需要生成几个html文件，就配置几个HtmlWebpackPlugin对象
+  module.exports.plugins.push(new HtmlWebpackPlugin(conf));
+}

@@ -40,34 +40,10 @@ var prodConfig = merge(webpackConfig, {
         safe: true
       }
     }),
-    new HtmlWebpackPlugin({
-      title: '哈哈哈哈哈',
-      filename: config.build.index,
-      template: 'index.html',
-      inject: true,
-      minify: {
-        removeComments: true, // 去掉html注释
-        collapseWhitespace: true, //折叠空白区域
-        removeAttributeQuotes: true // 可接受的去除属性的引号
-        // more options:
-        // https://github.com/kangax/html-minifier#options-quick-reference
-      },
-      // necessary to consistently work with multiple chunks via CommonsChunkPlugin
-      chunksSortMode: 'dependency' //控制chunk排序 dependency 按依赖
-      }
-    ),
     new webpack.optimize.CommonsChunkPlugin({
-      name: 'vendor',
-      minChunks: function (module, count) {
-        // any required modules inside node_modules are extracted to vendor
-        return (
-          module.resource &&
-          /\.js$/.test(module.resource) &&
-          module.resource.indexOf(
-            path.join(__dirname, '../node_modules')
-          ) === 0
-        )
-      }
+      name: 'vendors', // 将公共模块提取，生成名为`vendors`的chunk
+      chunks: ['index','server'], //提取哪些模块共有的部分
+      minChunks: 2 // 提取至少2个模块共有的部分
     }),
     // extract webpack runtime and module manifest to its own file in order to
     // prevent vendor hash from being updated whenever app bundle is updated
@@ -107,6 +83,25 @@ if (config.build.productionGzip) {
 if (config.build.bundleAnalyzerReport) {
   var BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
   prodConfig.plugins.push(new BundleAnalyzerPlugin())
+}
+var pages =  utils.getMultiEntry('./src/pages/*/*.html');
+for (var pathname in pages) {
+  // 配置生成的html文件，定义路径等
+  var conf = {
+    filename: pathname + '.html',
+    template: pages[pathname], // 模板路径
+    chunks: [pathname, 'vendors', 'manifest'], // 每个html引用的js模块
+    inject: true,             // js插入位置
+    minify: {
+      removeComments: true, // 去掉html注释
+      collapseWhitespace: true, //折叠空白区域
+      removeAttributeQuotes: true // 可接受的去除属性的引号
+      // more options:
+      // https://github.com/kangax/html-minifier#options-quick-reference
+    }
+  };
+  // 需要生成几个html文件，就配置几个HtmlWebpackPlugin对象
+  prodConfig.plugins.push(new HtmlWebpackPlugin(conf));
 }
 module.exports = prodConfig
 

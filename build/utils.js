@@ -4,6 +4,7 @@
 var path = require('path')
 var ExtractTextPlugin = require('extract-text-webpack-plugin')
 var config = require('../config')
+var glob = require('glob');
 
 exports.assetsPath = function (_path) {
   var assetsSubDirectory = config.dev.assetsSubDirectory
@@ -77,4 +78,26 @@ exports.styleLoaders = function (options) {
     })
   }
   return output
+}
+
+exports.getMultiEntry = function (globPath) {
+  var entries = {},
+    basename, tmp, pathname;
+  glob.sync(globPath).forEach(function (entry) {
+    basename = path.basename(entry, path.extname(entry));
+    tmp = entry.split('/').splice(-4);
+    var pathsrc = tmp[0]+'/'+tmp[1];
+    if( tmp[0] === 'src' ){
+      pathsrc = tmp[1];
+      basename = tmp[2]
+    }
+    pathname = pathsrc + '/' + basename;
+    if (path.extname(entry) === '.js') {
+      entries[pathname] = ['babel-polyfill', entry]
+    }
+    else {
+      entries[pathname] = entry
+    }
+  })
+  return entries
 }

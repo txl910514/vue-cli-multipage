@@ -46,7 +46,7 @@
 </script>
 
 <style lang="scss" rel="stylesheet/scss">
-    @import "../assets/css/utils";
+    @import "../../assets/css/utils";
     .header {
         background: #291;
         width: 100%;
